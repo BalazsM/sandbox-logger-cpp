@@ -24,7 +24,7 @@
     <ProjectGuid>{e062e4b3-2f23-4148-9cbb-3620fb5c9f26}</ProjectGuid>
     <RootNamespace>SerialInterface</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>sandbox-logger-cpp</ProjectName>
+    <ProjectName>logger</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
