@@ -1,6 +1,8 @@
 // TODO: log into a socket
-// TODO: create logger sandbox git repo
 // TODO: filter by tag
+// TODO: use next pointer mecha instead of list
+// TODO: worker thread
+// TODO: Logger.cpp
 
 #include <conio.h>
 #include <stdlib.h>
@@ -11,11 +13,11 @@ Logger logger;
 template <typename T>
 	class AutoStop : public T
 {
-	public:
-		~AutoStop()
-		{
-			this->Stop();
-		}
+public:
+	~AutoStop()
+	{
+		this->Stop();
+	}
 };
 
 const char* GetTag(int index)
@@ -71,6 +73,8 @@ std::string GenerateMessage(int seed)
 
 int main()
 {
+	console.Start();
+
 	AutoStop<Logger::DebugWriter> debugWriter;
 	debugWriter.Start();
 	logger.rules.push_back(Logger::Rule(Logger::Level::Debug, &debugWriter));
@@ -101,7 +105,17 @@ int main()
 		std::srand(seed++);
 		std::string message = GenerateMessage(std::rand());
 
-		logger.debug[__func__].SetFileLine(__FILE__, __LINE__) << message;
+		const int l = std::rand() % 100;
+		if (l < 2)
+			logger.fatal[__func__].SetFileLine(__FILE__, __LINE__) << message;
+		else if (l < 5)
+			logger.error[__func__] << message;
+		else if (l < 15)
+			logger.warning[__func__] << message;
+		else if (l < 30)
+			logger.info[__func__] << message;
+		else
+			logger.debug[__func__] << message;
 
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -110,4 +124,6 @@ int main()
 			exitSignal = true;
 		}
 	}
+
+	console.Stop();
 }
