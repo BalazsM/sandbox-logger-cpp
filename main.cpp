@@ -77,20 +77,24 @@ int main()
 
 	AutoStop<Logger::DebugWriter> debugWriter;
 	debugWriter.Start();
-	logger.rules.push_back(Logger::Rule(Logger::Level::Debug, &debugWriter));
+	Logger::Rule debugRule(Logger::Level::Debug, &debugWriter);
+	logger.AddRule(&debugRule);
 	logger.debug[__func__] << "first line of log";
 
 	AutoStop<Logger::ConsoleWriter> consoleWriter;
 	consoleWriter.Start();
-	logger.rules.push_back(Logger::Rule(Logger::Level::Debug, &consoleWriter));
+	Logger::Rule consoleRule(Logger::Level::Debug, &consoleWriter);
+	logger.AddRule(&consoleRule);
 
 	AutoStop<Logger::FileWriter> fileWriter;
 	fileWriter.Start();
-	logger.rules.push_back(Logger::Rule(Logger::Level::Info, &fileWriter));
+	Logger::Rule fileRule(Logger::Level::Info, &fileWriter);
+	logger.AddRule(&fileRule);
 
 	AutoStop<Logger::SocketWriter> socketWriter;
 	socketWriter.Start();
-	logger.rules.push_back(Logger::Rule(Logger::Level::Info, &socketWriter));
+	Logger::Rule socketRule(Logger::Level::Info, &socketWriter);
+	logger.AddRule(&socketRule);
 
 	logger.debug[__func__] << "first line of log";
 	logger.info[__func__] << "second " << "line of log";

@@ -337,7 +337,8 @@ public:
 		Rule(Level minLevel_, Writer* writer_)
 			:
 			minLevel(minLevel_),
-			writer(writer_)
+			writer(writer_),
+			nextRule(nullptr)
 		{
 		}
 
@@ -345,6 +346,7 @@ public:
 
 		Level minLevel;
 		Writer* writer;
+		Rule* nextRule;
 	};
 
 	EntryFactory<Level::Debug> debug;
@@ -353,18 +355,37 @@ public:
 	EntryFactory<Level::Error> error;
 	EntryFactory<Level::Fatal> fatal;
 
-	std::list<Rule> rules;
-
 	Logger()
 		:
 		debug(*this),
 		info(*this),
 		warning(*this),
 		error(*this),
-		fatal(*this)
+		fatal(*this),
+		firstRule(nullptr)
 	{}
 
+	void AddRule(Rule* newRule)
+	{
+		if (firstRule == nullptr)
+		{
+			firstRule = newRule;
+		}
+		else
+		{
+			Logger::Rule* rule = firstRule;
+			while (rule->nextRule != nullptr)
+			{
+				rule = rule->nextRule;
+			}
+			rule->nextRule = newRule;
+		}
+	}
+
 private:
+	Rule* firstRule;
+
+	friend class Logger::Entry;
 };
 
 // ________________________________________________________________  entry  __
@@ -373,9 +394,11 @@ Logger::Entry::~Entry()
 {
 //	writerThread.PushEntry();
 	// TODO: push into writer thread's queue
-	for (Logger::Rule& rule : logger.rules)
+	Logger::Rule* rule = logger.firstRule;
+	while (rule != nullptr)
 	{
-		rule.Apply(*this);
+		rule->Apply(*this);
+		rule = rule->nextRule;
 	}
 }
 
@@ -386,7 +409,7 @@ std::string Logger::Entry::Format() const
 
 	std::tm t;
 	localtime_s(&t, &time);
-	//result << std::put_time(&t, "%Y-%m-%d %OH:%OM:%OS");
+	result << std::put_time(&t, "%Y-%m-%d %OH:%OM:%OS");
 	Formatter::AddDateTime(result);
 	Formatter::AddSeparator(result);
 
