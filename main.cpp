@@ -3,6 +3,7 @@
 // TODO: use next pointer mecha instead of list
 // TODO: worker thread
 // TODO: Logger.cpp
+// TODO: assert
 
 #include <conio.h>
 #include <stdlib.h>
@@ -121,11 +122,15 @@ int main()
 		else
 			logger.debug[__func__] << message;
 
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-
-		if (_kbhit())
+		for (int i = 0; i < 10; i++)
 		{
-			exitSignal = true;
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+			if (_kbhit())
+			{
+				exitSignal = true;
+				break;
+			}
 		}
 	}
 

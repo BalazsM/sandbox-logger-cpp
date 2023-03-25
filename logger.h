@@ -110,24 +110,6 @@ public:
 		Logger& logger;
 	};
 
-	class Writer
-	{
-	public:
-		virtual void Start() = 0;
-		virtual void Stop() = 0;
-
-		virtual void Write(const Entry& entry) = 0;
-	};
-
-	class DebugWriter : public Writer
-	{
-	public:
-		void Start();
-		void Stop();
-
-		void Write(const Entry& entry);
-	};
-
 	class TextFormatter
 	{
 	public:
@@ -141,14 +123,18 @@ public:
 			stream << "\r\n";
 		}
 
-		static void AddTime(std::stringstream& stream)
+		static void AddTime(std::stringstream& stream, std::time_t time)
 		{
-			stream << "DateTime";
+			std::tm t;
+			localtime_s(&t, &time);
+			stream << std::put_time(&t, "%OH:%OM:%OS");
 		};
 
-		static void AddDateTime(std::stringstream& stream)
+		static void AddDateTime(std::stringstream& stream, std::time_t time)
 		{
-			stream << "DateTime";
+			std::tm t;
+			localtime_s(&t, &time);
+			stream << std::put_time(&t, "%Y-%m-%d %OH:%OM:%OS");
 		};
 
 		static void AddFileLine(std::stringstream& stream, const char* file, int line)
@@ -212,10 +198,16 @@ public:
 			Muted,
 		};
 
-		static void AddDateTime(std::stringstream& stream)
+		static void AddTime(std::stringstream& stream, std::time_t time)
 		{
 			SetStyle(stream, Style::Muted);
-			TextFormatter::AddTime(stream);
+			TextFormatter::AddTime(stream, time);
+		};
+
+		static void AddDateTime(std::stringstream& stream, std::time_t time)
+		{
+			SetStyle(stream, Style::Muted);
+			TextFormatter::AddDateTime(stream, time);
 		};
 
 		static void AddFileLine(std::stringstream& stream, const char* file, int line)
@@ -289,6 +281,24 @@ public:
 				break;
 			}
 		}
+	};
+
+	class Writer
+	{
+	public:
+		virtual void Start() = 0;
+		virtual void Stop() = 0;
+
+		virtual void Write(const Entry& entry) = 0;
+	};
+
+	class DebugWriter : public Writer
+	{
+	public:
+		void Start();
+		void Stop();
+
+		void Write(const Entry& entry);
 	};
 
 	class ConsoleWriter : public Writer
@@ -381,7 +391,7 @@ public:
 			rule->nextRule = newRule;
 		}
 	}
-
+	
 private:
 	Rule* firstRule;
 
@@ -407,22 +417,19 @@ std::string Logger::Entry::Format() const
 {
 	std::stringstream result;
 
-	std::tm t;
-	localtime_s(&t, &time);
-	result << std::put_time(&t, "%Y-%m-%d %OH:%OM:%OS");
-	Formatter::AddDateTime(result);
+	Formatter::AddDateTime(result, time);
 	Formatter::AddSeparator(result);
-
-	if (file != nullptr) {
-		Formatter::AddFileLine(result, file, line);
-		Formatter::AddSeparator(result);
-	}
 
 	Formatter::AddLevel(result, level);
 	Formatter::AddSeparator(result);
 
 	Formatter::AddTag(result, tag);
 	Formatter::AddSeparator(result);
+
+	if (file != nullptr) {
+		Formatter::AddFileLine(result, file, line);
+		Formatter::AddSeparator(result);
+	}
 
 	for (auto m : message)
 	{
