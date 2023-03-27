@@ -185,6 +185,15 @@ public:
 		}
 	};
 
+	class FileFormatter : public TextFormatter
+	{
+	public:
+		static void AddEntrySeparator(std::stringstream& stream)
+		{
+			stream << "\n";
+		}
+	};
+
 	class ConsoleFormatter : public TextFormatter
 	{
 	public:
@@ -496,7 +505,7 @@ void Logger::FileWriter::Write(const Entry& entry)
 
 	std::ofstream file;
 	file.open(filePath, std::ios_base::app);
-	file << entry.Format<TextFormatter>();
+	file << entry.Format<FileFormatter>();
 	file.close();
 }
 
